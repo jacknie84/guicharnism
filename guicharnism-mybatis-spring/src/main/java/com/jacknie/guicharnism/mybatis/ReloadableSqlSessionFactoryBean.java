@@ -38,7 +38,7 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 		for (Resource realoadTarget : reloadTargets) {
 			File watchTargetDirectory = realoadTarget.getFile();
 			String watchTarget = watchTargetDirectory.getAbsolutePath();
-			if (!watchContext.isExistsDirectory(watchTarget)) {
+			if (!watchContext.isAlreadyWatched(watchTarget)) {
 				logger.debug("watching... [{}]", watchTarget);
 				mapperWatcher.watch(watchTargetDirectory);
 			}

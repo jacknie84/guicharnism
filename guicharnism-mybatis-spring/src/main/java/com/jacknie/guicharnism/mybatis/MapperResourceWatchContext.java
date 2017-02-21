@@ -30,7 +30,7 @@ public class MapperResourceWatchContext {
 		return resourceMap.get(directory);
 	}
 	
-	public boolean isExistsDirectory(String directory) {
+	public boolean isAlreadyWatched(String directory) {
 		return resourceMap.containsKey(directory);
 	}
 }
