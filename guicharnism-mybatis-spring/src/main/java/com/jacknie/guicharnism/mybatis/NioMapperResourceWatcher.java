@@ -118,6 +118,7 @@ public class NioMapperResourceWatcher implements MapperResourceWatcher {
 							ErrorContext.instance().reset();
 						}
 						logger.debug("WatcherService reloads mybatis mapper resource.");
+						break;
 					}
 				}
 			}
