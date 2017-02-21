@@ -1,7 +1,6 @@
 # guicharnism
 
 `
-
 <bean class="com.jacknie.guicharnism.mybatis.ReloadableSqlSessionFactoryBean" id="sqlSession">
 	<property name="dataSource" ref="dataSource" />
 	<property name="configLocation" value="classpath:/mybatis/configuration.xml" />
