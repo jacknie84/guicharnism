@@ -47,12 +47,12 @@ public class ReloadableSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
 		
 		private final Configuration config;
 		private final Configuration reloadableConfig;
-		private final String intercepTargets;
+		private final String interceptTargets;
 
 		public MappedStatementIntercepter(Configuration config) {
 			this.config = config;
 			this.reloadableConfig = new ReloadableConfiguration(config);
-			this.intercepTargets = "isResourceLoaded, addMappedStatement, getMappedStatementNames, getMappedStatements, getMappedStatement, hasStatement";
+			this.interceptTargets = "isResourceLoaded, addMappedStatement, getMappedStatementNames, getMappedStatements, getMappedStatement, hasStatement";
 			for (Object element : config.getMappedStatements()) {
 				Class<?> type = element.getClass();
 				if (type.isAssignableFrom(MappedStatement.class)) {
@@ -68,7 +68,7 @@ public class ReloadableSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
 		@Override
 		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
 			String methodName = method.getName();
-			if (intercepTargets.contains(methodName)) {
+			if (interceptTargets.contains(methodName)) {
 				return methodProxy.invoke(reloadableConfig, args);
 			}
 			else {
