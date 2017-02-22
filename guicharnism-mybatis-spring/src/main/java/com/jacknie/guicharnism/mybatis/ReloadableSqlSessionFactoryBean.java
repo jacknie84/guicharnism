@@ -55,7 +55,8 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 				logger.debug("watching... [{}]", watchTarget);
 				mapperWatcher.watch(watchTargetDirectory);
 			}
-			File[] children = watchTargetDirectory.listFiles(new WatchFileFilter(mapperWatcher));
+			FileFilter fileFilter = new WatchFileFilter(mapperWatcher);
+			File[] children = watchTargetDirectory.listFiles(fileFilter);
 			if (children != null) {
 				for (File child : children) {
 					Resource r = new FileSystemResource(child);
