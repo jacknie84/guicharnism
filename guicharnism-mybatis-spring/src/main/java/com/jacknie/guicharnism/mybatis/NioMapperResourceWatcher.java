@@ -50,7 +50,7 @@ public class NioMapperResourceWatcher implements MapperResourceWatcher {
 			this.realoadTargetFilePattern = realoadTargetFilePattern;
 		}
 		else {
-			throw new IllegalStateException("\"" + realoadTargetFilePattern + "\" is not ant pattern.");
+			throw new IllegalArgumentException("\"" + realoadTargetFilePattern + "\" is not ant pattern.");
 		}
 	}
 
