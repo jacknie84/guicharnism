@@ -11,7 +11,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package com.jacknie.guicharnism.mybatis;
+package com.jacknie.guicharnism.mybatis.support;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
+
+import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
+import com.jacknie.guicharnism.mybatis.MapperResourceWatcher;
 
 public class NioMapperResourceWatcher implements MapperResourceWatcher {
 

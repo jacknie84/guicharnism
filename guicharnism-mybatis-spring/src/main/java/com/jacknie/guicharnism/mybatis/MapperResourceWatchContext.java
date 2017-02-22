@@ -13,26 +13,43 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import com.jacknie.guicharnism.mybatis.support.DefaultMapperResourceWatcherFactoryResolver;
 
 public class MapperResourceWatchContext {
 
 	private final MultiValueMap<String, Resource> resourceMap = new LinkedMultiValueMap<String, Resource>();
+	private final MapperResourceWatcherFactoryResolver factoryResolver;
 	
-	public MapperResourceWatcherFactory resolveFactory(Map<String, Object> parameterMap) {
-		return null;
+	public MapperResourceWatchContext() {
+		this(new DefaultMapperResourceWatcherFactoryResolver());
+	}
+
+	public MapperResourceWatchContext(MapperResourceWatcherFactoryResolver factoryResolver) {
+		Assert.notNull(factoryResolver);
+		this.factoryResolver = factoryResolver;
+	}
+
+	public MapperResourceWatcherFactory resolveFactory(Map<String, Object> argumentMap) {
+		MapperResourceWatcherFactory factory = factoryResolver.resolveFactory(argumentMap);
+		if (factory == null) {
+			throw new IllegalStateException("not exists implemented factory.");
+		}
+		return factory;
 	}
 	
 	public MapperResourceWatcherFactory resolveFactory(String name, Object value) {
-		String realoadTargetFilePattern = value.toString();
-		NioMapperResourceWatcherFactory factory = new NioMapperResourceWatcherFactory();
-		factory.setRealoadTargetFilePattern(realoadTargetFilePattern);
-		return factory;
+		Map<String, Object> argumentMap = new HashMap<String, Object>();
+		argumentMap.put(name, value);
+		return resolveFactory(argumentMap);
 	}
 	
 	public void addResource(String directory, Resource targetResource) {

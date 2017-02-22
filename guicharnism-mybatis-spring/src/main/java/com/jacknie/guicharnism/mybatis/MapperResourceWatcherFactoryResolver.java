@@ -1,5 +1,5 @@
 /**
- * Created by jacknie, 2017. 2. 21.
+ * Created by jacknie, 2017. 2. 22.
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -13,19 +13,13 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
-import org.apache.ibatis.session.Configuration;
+import java.util.Map;
 
-public class NioMapperResourceWatcherFactory implements MapperResourceWatcherFactory {
+/**
+ * @author jacknie
+ *
+ */
+public interface MapperResourceWatcherFactoryResolver {
 
-	private String realoadTargetFilePattern;
-	
-	public void setRealoadTargetFilePattern(String realoadTargetFilePattern) {
-		this.realoadTargetFilePattern = realoadTargetFilePattern;
-	}
-
-	@Override
-	public MapperResourceWatcher createWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
-		return new NioMapperResourceWatcher(watchContext, configuration, realoadTargetFilePattern);
-	}
-
+	MapperResourceWatcherFactory resolveFactory(Map<String, Object> argumentMap);
 }
