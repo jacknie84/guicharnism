@@ -24,10 +24,8 @@ import java.nio.file.WatchService;
 import java.util.List;
 
 import org.apache.ibatis.session.Configuration;
-import org.springframework.util.Assert;
 
 import com.jacknie.guicharnism.mybatis.AbstractMapperResourceWatcher;
-import com.jacknie.guicharnism.mybatis.FileModificationReceiver;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
 
 public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
@@ -41,44 +39,23 @@ public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
 	}
 
 	@Override
-	protected FileModificationReceiver getModificationReceiver(File watchTargetDirectory) {
-		return new NioFileModificationReceiver(watchTargetDirectory);
-	}
-
-	private class NioFileModificationReceiver implements FileModificationReceiver {
-		
-		private File targetDirectory;
-
-		public NioFileModificationReceiver(File targetDirectory) {
-			Assert.notNull(targetDirectory);
-			this.targetDirectory = targetDirectory;
+	protected File receiveModification(File watchTargetDirectory) throws IOException {
+		Path path = Paths.get(watchTargetDirectory.toURI());
+		WatchService watchService = path.getFileSystem().newWatchService();
+		path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+		WatchKey watchKey = null;
+		try {
+			watchKey = watchService.take();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-
-		@Override
-		public File getTargetDirectory() {
-			return targetDirectory;
-		}
-
-		@Override
-		public File receiveModification() throws IOException {
-			Path path = Paths.get(targetDirectory.toURI());
-			WatchService watchService = path.getFileSystem().newWatchService();
-			path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-			WatchKey watchKey = null;
-			try {
-				watchKey = watchService.take();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		List<WatchEvent<?>> events = watchKey.pollEvents();
+		for (WatchEvent<?> event : events) {
+			if (StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind())) {
+				Path eventPath = (Path) event.context();
+				return path.resolve(eventPath).toFile();
 			}
-			List<WatchEvent<?>> events = watchKey.pollEvents();
-			for (WatchEvent<?> event : events) {
-				if (StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind())) {
-					Path eventPath = (Path) event.context();
-					return path.resolve(eventPath).toFile();
-				}
-			}
-			return null;
 		}
-
+		return null;
 	}
 }

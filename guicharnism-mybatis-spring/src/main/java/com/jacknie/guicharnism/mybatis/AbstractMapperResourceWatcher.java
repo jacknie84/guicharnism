@@ -43,27 +43,26 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	@Override
 	public void watch(File watchTargetDirectory) throws IOException {
 		watchContext.addTargetDirectory(watchTargetDirectory);
-		FileModificationReceiver fileModificationReceiver = getModificationReceiver(watchTargetDirectory);
-		Runnable watchRunner = new WatchRunner(fileModificationReceiver);
+		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
 		Thread watchThread = new Thread(watchRunner);
 		watchThread.start();
 	}
 	
-	protected abstract FileModificationReceiver getModificationReceiver(File watchTargetDirectory);
+	protected abstract File receiveModification(File watchTargetDirectory) throws IOException;
 	
 	private class WatchRunner implements Runnable {
 		
-		FileModificationReceiver fileModificationReceiver;
+		File watchTargetDirectory;
 
-		WatchRunner(FileModificationReceiver fileModificationReceiver) {
-			this.fileModificationReceiver = fileModificationReceiver;
+		public WatchRunner(File watchTargetDirectory) {
+			this.watchTargetDirectory = watchTargetDirectory;
 		}
 
 		@Override
 		public void run() {
 			while (true) {
 				try {
-					File modifiedFile = fileModificationReceiver.receiveModification();
+					File modifiedFile = receiveModification(watchTargetDirectory);
 					String modifiedFilePath = modifiedFile.getAbsolutePath();
 					logger.debug("[{}] file modified.", modifiedFilePath);
 					Resource mapperResource = getMatchedMapperResource(modifiedFilePath);
@@ -90,8 +89,7 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 		}
 		
 		Resource getMatchedMapperResource(String modifiedFilePath) throws IOException {
-			File directory = fileModificationReceiver.getTargetDirectory();
-			List<Resource> resources = watchContext.getResources(directory.getAbsolutePath());
+			List<Resource> resources = watchContext.getResources(watchTargetDirectory.getAbsolutePath());
 			if (resources != null) {
 				for (Resource resource : resources) {
 					String resourcePath = resource.getFile().getAbsolutePath();
