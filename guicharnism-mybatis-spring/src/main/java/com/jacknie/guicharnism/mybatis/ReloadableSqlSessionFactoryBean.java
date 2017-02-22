@@ -13,8 +13,6 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
-import java.io.File;
-
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -58,12 +56,10 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 		MapperResourceWatcher mapperWatcher = watcherFactory.createWatcher(watchContext, configuration);
 		
 		for (Resource realoadTarget : reloadTargets) {
-			File watchTargetDirectory = realoadTarget.getFile();
-			if (!watchContext.isAlreadyWatched(watchTargetDirectory)) {
-				logger.debug("watching... [{}]", watchTargetDirectory);
-				mapperWatcher.watch(watchTargetDirectory);
+			if (!watchContext.isAlreadyWatched(realoadTarget)) {
+				logger.debug("watching... \"{}\"", realoadTarget);
+				mapperWatcher.watch(realoadTarget);
 			}
-			
 		}
 	}
 	

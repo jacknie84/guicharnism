@@ -13,10 +13,11 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
-import java.io.File;
 import java.io.IOException;
+
+import org.springframework.core.io.Resource;
 
 public interface MapperResourceWatcher {
 
-	void watch(File watchTargetDirectory) throws IOException;
+	void watch(Resource directory) throws IOException;
 }

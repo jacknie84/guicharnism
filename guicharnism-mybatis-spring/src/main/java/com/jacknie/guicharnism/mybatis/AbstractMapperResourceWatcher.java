@@ -41,7 +41,8 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	}
 	
 	@Override
-	public void watch(File watchTargetDirectory) throws IOException {
+	public void watch(Resource watchTargetResource) throws IOException {
+		File watchTargetDirectory = watchTargetResource.getFile();
 		watchContext.addTargetDirectory(watchTargetDirectory);
 		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
 		Thread watchThread = new Thread(watchRunner);
@@ -50,7 +51,7 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	
 	protected abstract File receiveModification(File watchTargetDirectory) throws IOException;
 	
-	private class WatchRunner implements Runnable {
+	protected class WatchRunner implements Runnable {
 		
 		File watchTargetDirectory;
 

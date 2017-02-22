@@ -16,6 +16,7 @@ package com.jacknie.guicharnism.mybatis;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.core.io.FileSystemResource;
@@ -39,8 +40,8 @@ public class MapperResourceWatchContext {
 		return new NioMapperResourceWatcherFactory();
 	}
 	
-	public boolean isAlreadyWatched(File directory) {
-		String path = directory.getAbsolutePath();
+	public boolean isAlreadyWatched(Resource directory) throws IOException {
+		String path = directory.getFile().getAbsolutePath();
 		return resourceMap.containsKey(path);
 	}
 
