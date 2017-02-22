@@ -60,7 +60,7 @@ public class ReloadableSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder
 					reloadableConfig.addMappedStatement(ms);
 				}
 				else {
-					logger.debug("[{}] object is not instance of MappedStatement class.");
+					logger.debug("[{}] object is not instance of MappedStatement class.", element);
 				}
 			}
 		}
