@@ -13,54 +13,77 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
-import java.util.HashMap;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.Map;
 
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.PathMatcher;
 
-import com.jacknie.guicharnism.mybatis.support.DefaultMapperResourceWatcherFactoryResolver;
+import com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory;
 
 public class MapperResourceWatchContext {
 
 	private final MultiValueMap<String, Resource> resourceMap = new LinkedMultiValueMap<String, Resource>();
-	private final MapperResourceWatcherFactoryResolver factoryResolver;
+	private final PathMatcher pathMatcher = new AntPathMatcher();
 	
-	public MapperResourceWatchContext() {
-		this(new DefaultMapperResourceWatcherFactoryResolver());
+	private String realoadTargetFilePattern;
+	
+	public MapperResourceWatcherFactory resolveFactory() {
+		//TODO: 1.6 환경 개발자 고려 VFS Watcher 개발 예정
+		return new NioMapperResourceWatcherFactory();
+	}
+	
+	public boolean isAlreadyWatched(File directory) {
+		String path = directory.getAbsolutePath();
+		return resourceMap.containsKey(path);
 	}
 
-	public MapperResourceWatchContext(MapperResourceWatcherFactoryResolver factoryResolver) {
-		Assert.notNull(factoryResolver);
-		this.factoryResolver = factoryResolver;
-	}
-
-	public MapperResourceWatcherFactory resolveFactory(Map<String, Object> argumentMap) {
-		MapperResourceWatcherFactory factory = factoryResolver.resolveFactory(argumentMap);
-		if (factory == null) {
-			throw new IllegalStateException("not exists implemented factory.");
+	public void setRealoadTargetFilePattern(String realoadTargetFilePattern) {
+		if (pathMatcher.isPattern(realoadTargetFilePattern)) {
+			this.realoadTargetFilePattern = realoadTargetFilePattern;
 		}
-		return factory;
+		else {
+			throw new IllegalArgumentException("\"" + realoadTargetFilePattern + "\" is not ant pattern.");
+		}
 	}
 	
-	public MapperResourceWatcherFactory resolveFactory(String name, Object value) {
-		Map<String, Object> argumentMap = new HashMap<String, Object>();
-		argumentMap.put(name, value);
-		return resolveFactory(argumentMap);
+	public boolean isMatchedFileName(String fileName) {
+		return pathMatcher.match(realoadTargetFilePattern, fileName);
 	}
 	
-	public void addResource(String directory, Resource targetResource) {
-		resourceMap.add(directory, targetResource);
+	public void addTargetDirectory(File watchTargetDirectory) throws FileNotFoundException {
+		
+		if (!watchTargetDirectory.exists()) {
+			throw new FileNotFoundException(watchTargetDirectory.getAbsolutePath());
+		}
+		if (!watchTargetDirectory.isDirectory()) {
+			throw new IllegalArgumentException("File object is not referenced directory.");
+		}
+		
+		File[] children = watchTargetDirectory.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File file) {
+				return file.isFile() && isMatchedFileName(file.getName());
+			}
+			
+		});
+		if (children != null) {
+			for (File child : children) {
+				Resource resource = new FileSystemResource(child);
+				String directory = watchTargetDirectory.getAbsolutePath();
+				resourceMap.add(directory, resource);
+			}
+		}
 	}
 	
 	public List<Resource> getResources(String directory) {
 		return resourceMap.get(directory);
-	}
-	
-	public boolean isAlreadyWatched(String directory) {
-		return resourceMap.containsKey(directory);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Created by jacknie, 2017. 2. 21.
+ * Created by jacknie, 2017. 2. 22.
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -11,19 +11,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-package com.jacknie.guicharnism.mybatis.support;
+package com.jacknie.guicharnism.mybatis;
 
-import org.apache.ibatis.session.Configuration;
+import java.io.File;
+import java.io.IOException;
 
-import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
-import com.jacknie.guicharnism.mybatis.MapperResourceWatcher;
-import com.jacknie.guicharnism.mybatis.MapperResourceWatcherFactory;
+/**
+ * @author jacknie
+ *
+ */
+public interface FileModificationReceiver {
 
-public class NioMapperResourceWatcherFactory implements MapperResourceWatcherFactory {
-
-	@Override
-	public MapperResourceWatcher createWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
-		return new NioMapperResourceWatcher(watchContext, configuration);
-	}
-
+	File getTargetDirectory();
+	
+	File receiveModification() throws IOException;
 }

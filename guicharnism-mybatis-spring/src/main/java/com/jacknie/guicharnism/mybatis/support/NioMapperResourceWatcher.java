@@ -14,9 +14,7 @@
 package com.jacknie.guicharnism.mybatis.support;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
@@ -25,124 +23,62 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.List;
 
-import org.apache.ibatis.builder.xml.XMLMapperBuilder;
-import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.PathMatcher;
+import org.springframework.util.Assert;
 
+import com.jacknie.guicharnism.mybatis.AbstractMapperResourceWatcher;
+import com.jacknie.guicharnism.mybatis.FileModificationReceiver;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
-import com.jacknie.guicharnism.mybatis.MapperResourceWatcher;
 
-public class NioMapperResourceWatcher implements MapperResourceWatcher {
+public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
 
-	private final Logger logger = LoggerFactory.getLogger(NioMapperResourceWatcher.class);
-	private final PathMatcher pathMatcher = new AntPathMatcher();
-	
-	private final MapperResourceWatchContext watchContext;
-	private final Configuration configuration;
-	private final String realoadTargetFilePattern;
-	
-	public NioMapperResourceWatcher(MapperResourceWatchContext watchContext, Configuration configuration, String realoadTargetFilePattern) {
-		this.watchContext = watchContext;
-		this.configuration = configuration;
-		if (pathMatcher.isPattern(realoadTargetFilePattern)) {
-			this.realoadTargetFilePattern = realoadTargetFilePattern;
-		}
-		else {
-			throw new IllegalArgumentException("\"" + realoadTargetFilePattern + "\" is not ant pattern.");
-		}
+	/**
+	 * @param watchContext
+	 * @param configuration
+	 */
+	public NioMapperResourceWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
+		super(watchContext, configuration);
 	}
 
 	@Override
-	public boolean isTargetFileName(String fileName) {
-		return pathMatcher.match(realoadTargetFilePattern, fileName);
+	protected FileModificationReceiver getModificationReceiver(File watchTargetDirectory) {
+		return new NioFileModificationReceiver(watchTargetDirectory);
 	}
 
-	@Override
-	public void watch(File watchTargetDirectory) throws IOException {
+	private class NioFileModificationReceiver implements FileModificationReceiver {
 		
-		if (!watchTargetDirectory.exists()) {
-			throw new FileNotFoundException(watchTargetDirectory.getAbsolutePath());
-		}
-		if (!watchTargetDirectory.isDirectory()) {
-			throw new IllegalArgumentException("File object is not referenced directory.");
-		}
-		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
-		Thread watchThread = new Thread(watchRunner);
-		watchThread.start();
-	}
-	
-	private class WatchRunner implements Runnable {
-		
-		private Path watchTargetPath;
-		
-		WatchRunner(File watchTargetDirectory) {
-			this(Paths.get(watchTargetDirectory.toURI()));
-		}
+		private File targetDirectory;
 
-		WatchRunner(Path watchTargetPath) {
-			this.watchTargetPath = watchTargetPath;
+		public NioFileModificationReceiver(File targetDirectory) {
+			Assert.notNull(targetDirectory);
+			this.targetDirectory = targetDirectory;
 		}
 
 		@Override
-		public void run() {
-			while (true) {
-				try {
-					WatchService watcher = watchTargetPath.getFileSystem().newWatchService();
-					watchTargetPath.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
-					WatchKey watchKey = watcher.take();
-					List<WatchEvent<?>> events = watchKey.pollEvents();
-					for (WatchEvent<?> event : events) {
-						if (StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind())) {
-							handleEvent(event);
-						}
-					}
-					
-				} catch (IOException | InterruptedException e) {
-					throw new IllegalStateException(e);
-				}
-			}
+		public File getTargetDirectory() {
+			return targetDirectory;
 		}
-		
-		void handleEvent(WatchEvent<?> event) throws IOException {
-			Path eventPath = (Path) event.context();
-			Path resolvedPath = watchTargetPath.resolve(eventPath).toAbsolutePath();
-			logger.debug("[{}] file modified.", resolvedPath);
-			Resource mapperResource = getMatchedMapperResource(resolvedPath);
-			if (mapperResource != null) {
-				logger.debug("start parse mapper resource.");
-				try {
-					InputStream mapperSource = mapperResource.getInputStream();
-					String resourceName = mapperResource.toString();
-					XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperSource,
-							configuration, resourceName, configuration.getSqlFragments());
-	
-					xmlMapperBuilder.parse();
-				} catch (Exception e) {
-					throw new IllegalStateException(e);
-				} finally {
-					ErrorContext.instance().reset();
-				}
-				logger.debug("WatcherService reloads mybatis mapper resource.");
+
+		@Override
+		public File receiveModification() throws IOException {
+			Path path = Paths.get(targetDirectory.toURI());
+			WatchService watchService = path.getFileSystem().newWatchService();
+			path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+			WatchKey watchKey = null;
+			try {
+				watchKey = watchService.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		}
-		
-		Resource getMatchedMapperResource(Path resolvedPath) throws IOException {
-			List<Resource> resources = watchContext.getResources(watchTargetPath.toString());
-			if (resources != null) {
-				for (Resource resource : resources) {
-					Path resourcePath = Paths.get(resource.getURI());
-					if (resourcePath.equals(resolvedPath)) {
-						return resource;
-					}
+			List<WatchEvent<?>> events = watchKey.pollEvents();
+			for (WatchEvent<?> event : events) {
+				if (StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind())) {
+					Path eventPath = (Path) event.context();
+					return path.resolve(eventPath).toFile();
 				}
 			}
 			return null;
 		}
-		
+
 	}
 }

@@ -14,14 +14,14 @@
 package com.jacknie.guicharnism.mybatis;
 
 import java.io.File;
-import java.io.FileFilter;
 
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 
 public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 
@@ -39,46 +39,32 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 	}
 
 	@Override
+	public void setSqlSessionFactoryBuilder(SqlSessionFactoryBuilder sqlSessionFactoryBuilder) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void afterPropertiesSet() throws Exception {
+		
+		Assert.notEmpty(reloadTargets);
+		Assert.hasLength(realoadTargetFilePattern);
 		
 		super.setSqlSessionFactoryBuilder(new ReloadableSqlSessionFactoryBuilder());
 		super.afterPropertiesSet();
 		
 		Configuration configuration = getObject().getConfiguration();
-		MapperResourceWatcherFactory watcherFactory = watchContext.resolveFactory("realoadTargetFilePattern", realoadTargetFilePattern);
+		watchContext.setRealoadTargetFilePattern(realoadTargetFilePattern);
+		MapperResourceWatcherFactory watcherFactory = watchContext.resolveFactory();
 		MapperResourceWatcher mapperWatcher = watcherFactory.createWatcher(watchContext, configuration);
 		
 		for (Resource realoadTarget : reloadTargets) {
 			File watchTargetDirectory = realoadTarget.getFile();
-			String watchTarget = watchTargetDirectory.getAbsolutePath();
-			if (!watchContext.isAlreadyWatched(watchTarget)) {
-				logger.debug("watching... [{}]", watchTarget);
+			if (!watchContext.isAlreadyWatched(watchTargetDirectory)) {
+				logger.debug("watching... [{}]", watchTargetDirectory);
 				mapperWatcher.watch(watchTargetDirectory);
-			}
-			FileFilter fileFilter = new WatchFileFilter(mapperWatcher);
-			File[] children = watchTargetDirectory.listFiles(fileFilter);
-			if (children != null) {
-				for (File child : children) {
-					Resource r = new FileSystemResource(child);
-					watchContext.addResource(watchTarget, r);
-				}
 			}
 			
 		}
 	}
 	
-	private class WatchFileFilter implements FileFilter {
-		
-		private final MapperResourceWatcher mapperWatcher;
-
-		public WatchFileFilter(MapperResourceWatcher mapperWatcher) {
-			this.mapperWatcher = mapperWatcher;
-		}
-
-		@Override
-		public boolean accept(File file) {
-			return file.isFile() && mapperWatcher.isTargetFileName(file.getName());
-		}
-		
-	}
 }
