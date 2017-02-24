@@ -19,5 +19,5 @@ package com.jacknie.guicharnism.mybatis;
  */
 public interface MapperResourceWatcherFactoryResolver {
 
-	MapperResourceWatcherFactory resolveFactory() throws MapperResourceWatcherFactoryNotFoundException;
+	MapperResourceWatcherFactory resolveFactory(MapperResourceWatchContext watchContext) throws MapperResourceWatcherFactoryNotFoundException;
 }

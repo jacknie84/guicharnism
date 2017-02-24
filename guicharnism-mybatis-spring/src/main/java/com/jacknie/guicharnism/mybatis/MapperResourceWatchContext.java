@@ -47,7 +47,7 @@ public class MapperResourceWatchContext {
 	
 	public MapperResourceWatcherFactory resolveFactory() throws MapperResourceWatcherFactoryNotFoundException {
 		if (this.watcherFactory == null) {
-			this.watcherFactory = factoryResolver.resolveFactory();
+			this.watcherFactory = factoryResolver.resolveFactory(this);
 		}
 		return this.watcherFactory;
 	}

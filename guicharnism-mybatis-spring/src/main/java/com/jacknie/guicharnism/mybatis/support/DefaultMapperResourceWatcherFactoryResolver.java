@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ClassUtils;
 
+import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatcherFactory;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatcherFactoryNotFoundException;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatcherFactoryResolver;
@@ -36,15 +37,15 @@ public class DefaultMapperResourceWatcherFactoryResolver implements MapperResour
 	};
 	
 	@Override
-	public MapperResourceWatcherFactory resolveFactory() throws MapperResourceWatcherFactoryNotFoundException {
+	public MapperResourceWatcherFactory resolveFactory(MapperResourceWatchContext watchContext) throws MapperResourceWatcherFactoryNotFoundException {
 		ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 		try {
 			for (String className : targetClasses) {
 				if (ClassUtils.isPresent(className, classLoader)) {
 					logger.debug("[{}] factory instance loading...", className);
 					Class<?> clazz = classLoader.loadClass(className);
-					Constructor<?> constructor = clazz.getConstructor(getClass());
-					Object instance = constructor.newInstance(this);
+					Constructor<?> constructor = clazz.getConstructor(watchContext.getClass());
+					Object instance = constructor.newInstance(watchContext);
 					return (MapperResourceWatcherFactory) instance;
 				}
 			}
