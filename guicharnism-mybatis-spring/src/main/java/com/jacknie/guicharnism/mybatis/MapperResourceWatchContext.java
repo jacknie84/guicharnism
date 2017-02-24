@@ -60,8 +60,8 @@ public class MapperResourceWatchContext {
 					logger.debug("[{}] factory instance loading...", className);
 					Class<?> clazz = classLoader.loadClass(className);
 					Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(clazz, this.getClass());
-					Object incetance = constructor.newInstance(this);
-					this.watcherFactory = (MapperResourceWatcherFactory) incetance;
+					Object instance = constructor.newInstance(this);
+					this.watcherFactory = (MapperResourceWatcherFactory) instance;
 				}
 			} catch (Exception e) {
 				throw new IllegalStateException(e);
