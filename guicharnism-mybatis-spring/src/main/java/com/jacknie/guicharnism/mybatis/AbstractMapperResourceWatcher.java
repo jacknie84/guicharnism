@@ -88,7 +88,10 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 						} finally {
 							ErrorContext.instance().reset();
 						}
-						logger.debug("WatcherService reloads mybatis mapper resource.");
+						logger.debug("MapperResourceWatcher reloads mybatis mapper resource.");
+					}
+					else {
+						logger.debug("[{}] file is not exists matched resource.");
 					}
 				} catch (IOException e) {
 					throw new IllegalStateException(e);
