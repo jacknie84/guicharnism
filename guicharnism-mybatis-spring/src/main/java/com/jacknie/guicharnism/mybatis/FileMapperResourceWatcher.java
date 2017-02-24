@@ -29,7 +29,7 @@ import org.springframework.core.io.Resource;
  * @author jacknie
  *
  */
-public abstract class AbstractMapperResourceWatcher implements MapperResourceWatcher {
+public abstract class FileMapperResourceWatcher implements MapperResourceWatcher {
 	
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 	protected final MapperResourceWatchContext watchContext;
@@ -37,7 +37,7 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	
 	protected Thread watchThread;
 
-	public AbstractMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
+	public FileMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
 		this.watchContext = watchContext;
 		this.watchTarget = watchTarget;
 	}

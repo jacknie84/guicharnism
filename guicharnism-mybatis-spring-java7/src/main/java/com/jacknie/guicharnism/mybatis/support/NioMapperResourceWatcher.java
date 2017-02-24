@@ -25,10 +25,10 @@ import java.util.List;
 
 import org.springframework.core.io.Resource;
 
-import com.jacknie.guicharnism.mybatis.AbstractMapperResourceWatcher;
+import com.jacknie.guicharnism.mybatis.FileMapperResourceWatcher;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
 
-public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
+public class NioMapperResourceWatcher extends FileMapperResourceWatcher {
 
 	/**
 	 * @param watchContext
