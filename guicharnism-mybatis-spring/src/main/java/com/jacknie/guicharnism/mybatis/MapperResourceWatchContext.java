@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +55,17 @@ public class MapperResourceWatchContext {
 		if (this.watcherFactory == null) {
 			ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 			String className = "com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory";
-			if (ClassUtils.isPresent(className, classLoader)) {
-				logger.debug("[{}] factory instance loading...", className);
-				this.watcherFactory = new NioMapperResourceWatcherFactory(this);
+			try {
+				if (ClassUtils.isPresent(className, classLoader)) {
+					logger.debug("[{}] factory instance loading...", className);
+					this.watcherFactory = new NioMapperResourceWatcherFactory(this);
+					Class<?> clazz = classLoader.loadClass(className);
+					Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(clazz, this.getClass());
+					Object incetance = constructor.newInstance(this);
+					this.watcherFactory = (MapperResourceWatcherFactory) incetance;
+				}
+			} catch (Exception e) {
+				throw new IllegalStateException(e);
 			}
 		}
 		return this.watcherFactory;
