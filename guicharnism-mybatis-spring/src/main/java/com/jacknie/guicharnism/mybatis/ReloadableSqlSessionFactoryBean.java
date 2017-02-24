@@ -55,7 +55,7 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 		
 		for (Resource realoadTarget : reloadTargets) {
 			if (!watchContext.isAlreadyWatched(realoadTarget)) {
-				logger.debug("watching... \"{}\"", realoadTarget);
+				logger.debug("watching... {}", realoadTarget);
 				watcherFactory.createWatcher(realoadTarget).watch();
 			}
 		}

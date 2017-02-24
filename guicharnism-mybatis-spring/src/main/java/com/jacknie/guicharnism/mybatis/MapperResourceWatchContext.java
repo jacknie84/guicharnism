@@ -24,10 +24,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ibatis.session.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.PathMatcher;
@@ -36,6 +39,7 @@ import com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory;
 
 public class MapperResourceWatchContext {
 
+	private final Logger logger = LoggerFactory.getLogger(getClass());	
 	private final MultiValueMap<String, Resource> resourceMap = new LinkedMultiValueMap<String, Resource>();
 	private final Map<String, MapperResourceWatcher> watcherMap = new HashMap<String, MapperResourceWatcher>();
 	private final PathMatcher pathMatcher = new AntPathMatcher();
@@ -48,7 +52,12 @@ public class MapperResourceWatchContext {
 		Assert.hasLength(reloadTargetFilePattern);
 		//TODO: 1.6 환경 개발자 고려 VFS Watcher 개발 예정
 		if (this.watcherFactory == null) {
-			this.watcherFactory = new NioMapperResourceWatcherFactory(this);
+			ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+			String className = "com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory";
+			if (ClassUtils.isPresent(className, classLoader)) {
+				logger.debug("[{}] factory instance loading...", className);
+				this.watcherFactory = new NioMapperResourceWatcherFactory(this);
+			}
 		}
 		return this.watcherFactory;
 	}

@@ -23,15 +23,17 @@ import org.apache.ibatis.builder.annotation.MethodResolver;
 import org.apache.ibatis.builder.xml.XMLStatementBuilder;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReloadableConfiguration extends Configuration {
 	
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Map<String, MappedStatement> mappedStatements = new HashMap<String, MappedStatement>();
 	private final Configuration config;
-	private final Map<String, MappedStatement> mappedStatements;
 
 	public ReloadableConfiguration(Configuration config) {
 		this.config = config;
-		this.mappedStatements = new HashMap<String, MappedStatement>();
 	}
 
 	@Override
@@ -41,6 +43,7 @@ public class ReloadableConfiguration extends Configuration {
 
 	@Override
 	public void addMappedStatement(MappedStatement ms) {
+		logger.debug("add {}", ms.getResource());
 		this.mappedStatements.put(ms.getId(), ms);
 	}
 
