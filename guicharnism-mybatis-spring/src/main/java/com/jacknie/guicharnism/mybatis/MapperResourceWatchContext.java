@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ibatis.session.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -124,6 +125,10 @@ public class MapperResourceWatchContext {
 	
 	public Collection<MapperResourceWatcher> getWatchers() {
 		return watcherMap.values();
+	}
+	
+	public Set<String> getWatchedDirectories() {
+		return watcherMap.keySet();
 	}
 	
 	public List<Resource> getResources(String directory) {
