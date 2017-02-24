@@ -64,7 +64,13 @@ public class MapperResourceWatchContext {
 	
 	public boolean isAlreadyWatched(Resource resource) throws IOException {
 		String directory = resource.getFile().getAbsolutePath();
-		return resourceMap.containsKey(directory);
+		if (resourceMap.containsKey(directory)) {
+			MapperResourceWatcher watcher = watcherMap.get(directory);
+			if (watcher != null) {
+				return watcher.isWatched();
+			}
+		}
+		return false;
 	}
 
 	public Configuration getConfiguration() {
@@ -120,11 +126,10 @@ public class MapperResourceWatchContext {
 		}
 	}
 	
-	public void removeWatcher(MapperResourceWatcher watcher) throws IOException {
+	public void removeWatchedResource(MapperResourceWatcher watcher) throws IOException {
 		
 		Resource resource = watcher.getTargetResource();
 		String directory = resource.getFile().getAbsolutePath();
-		watcherMap.remove(directory);
 		resourceMap.remove(directory);
 	}
 	

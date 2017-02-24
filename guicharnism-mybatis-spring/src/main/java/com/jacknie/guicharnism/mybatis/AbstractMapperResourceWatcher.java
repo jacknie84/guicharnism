@@ -65,7 +65,7 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	public void release() throws IOException {
 		if (isWatched()) {
 			watchThread.interrupt();
-			watchContext.removeWatcher(this);
+			watchContext.removeWatchedResource(this);
 		}
 	}
 	
