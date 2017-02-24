@@ -58,7 +58,6 @@ public class MapperResourceWatchContext {
 			try {
 				if (ClassUtils.isPresent(className, classLoader)) {
 					logger.debug("[{}] factory instance loading...", className);
-					this.watcherFactory = new NioMapperResourceWatcherFactory(this);
 					Class<?> clazz = classLoader.loadClass(className);
 					Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(clazz, this.getClass());
 					Object incetance = constructor.newInstance(this);
