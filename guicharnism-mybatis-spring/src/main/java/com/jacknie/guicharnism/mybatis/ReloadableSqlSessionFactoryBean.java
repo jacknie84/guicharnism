@@ -24,9 +24,13 @@ import org.springframework.util.Assert;
 public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private final MapperResourceWatchContext watchContext = new MapperResourceWatchContext();
+	private MapperResourceWatchContext watchContext;
 	private Resource[] reloadTargets;
 	private String realoadTargetFilePattern;
+
+	public void setWatchContext(MapperResourceWatchContext watchContext) {
+		this.watchContext = watchContext;
+	}
 
 	public void setReloadTargets(Resource[] reloadTargets) {
 		this.reloadTargets = reloadTargets;
@@ -46,6 +50,7 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 		
 		Assert.notEmpty(reloadTargets);
 		Assert.hasLength(realoadTargetFilePattern);
+		Assert.notNull(watchContext);
 		
 		super.setSqlSessionFactoryBuilder(new ReloadableSqlSessionFactoryBuilder());
 		super.afterPropertiesSet();
