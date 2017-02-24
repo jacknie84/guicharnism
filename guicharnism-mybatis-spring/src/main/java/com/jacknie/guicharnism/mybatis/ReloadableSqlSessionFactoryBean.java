@@ -26,7 +26,6 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private MapperResourceWatchContext watchContext;
 	private Resource[] reloadTargets;
-	private String realoadTargetFilePattern;
 
 	public void setWatchContext(MapperResourceWatchContext watchContext) {
 		this.watchContext = watchContext;
@@ -34,10 +33,6 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 
 	public void setReloadTargets(Resource[] reloadTargets) {
 		this.reloadTargets = reloadTargets;
-	}
-
-	public void setRealoadTargetFilePattern(String realoadTargetFilePattern) {
-		this.realoadTargetFilePattern = realoadTargetFilePattern;
 	}
 
 	@Override
@@ -49,14 +44,12 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 	public void afterPropertiesSet() throws Exception {
 		
 		Assert.notEmpty(reloadTargets);
-		Assert.hasLength(realoadTargetFilePattern);
 		Assert.notNull(watchContext);
 		
 		super.setSqlSessionFactoryBuilder(new ReloadableSqlSessionFactoryBuilder());
 		super.afterPropertiesSet();
 		
 		Configuration configuration = getObject().getConfiguration();
-		watchContext.setRealoadTargetFilePattern(realoadTargetFilePattern);
 		watchContext.setConfiguration(configuration);
 		MapperResourceWatcherFactory watcherFactory = watchContext.resolveFactory();
 		

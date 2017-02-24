@@ -40,10 +40,11 @@ public class MapperResourceWatchContext {
 	private final Map<String, MapperResourceWatcher> watcherMap = new HashMap<String, MapperResourceWatcher>();
 	private final PathMatcher pathMatcher = new AntPathMatcher();
 	
-	private String realoadTargetFilePattern;
+	private String reloadTargetFilePattern;
 	private Configuration configuration;
 	
 	public MapperResourceWatcherFactory resolveFactory() {
+		Assert.hasLength(reloadTargetFilePattern);
 		//TODO: 1.6 환경 개발자 고려 VFS Watcher 개발 예정
 		return new NioMapperResourceWatcherFactory(this);
 	}
@@ -62,17 +63,17 @@ public class MapperResourceWatchContext {
 		this.configuration = configuration;
 	}
 
-	public void setRealoadTargetFilePattern(String realoadTargetFilePattern) {
-		if (pathMatcher.isPattern(realoadTargetFilePattern)) {
-			this.realoadTargetFilePattern = realoadTargetFilePattern;
+	public void setReloadTargetFilePattern(String reloadTargetFilePattern) {
+		if (pathMatcher.isPattern(reloadTargetFilePattern)) {
+			this.reloadTargetFilePattern = reloadTargetFilePattern;
 		}
 		else {
-			throw new IllegalArgumentException("\"" + realoadTargetFilePattern + "\" is not ant pattern.");
+			throw new IllegalArgumentException("\"" + reloadTargetFilePattern + "\" is not ant pattern.");
 		}
 	}
 	
 	public boolean isMatchedFileName(String fileName) {
-		return pathMatcher.match(realoadTargetFilePattern, fileName);
+		return pathMatcher.match(reloadTargetFilePattern, fileName);
 	}
 	
 	public void addWatcher(MapperResourceWatcher watcher) throws IOException {
