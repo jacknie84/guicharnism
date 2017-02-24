@@ -70,7 +70,7 @@ public class MapperResourceWatchContext {
 	
 	public boolean isAlreadyWatched(Resource resource) throws IOException {
 		String directory = resource.getFile().getAbsolutePath();
-		if (resourceMap.containsKey(directory)) {
+		if (watcherMap.containsKey(directory)) {
 			MapperResourceWatcher watcher = watcherMap.get(directory);
 			if (watcher != null) {
 				return watcher.isWatched();
