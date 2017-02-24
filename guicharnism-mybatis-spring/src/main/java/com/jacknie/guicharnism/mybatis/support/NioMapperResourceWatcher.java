@@ -39,16 +39,11 @@ public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
 	}
 
 	@Override
-	protected File receiveModification(File watchTargetDirectory) throws IOException {
+	protected File receiveModification(File watchTargetDirectory) throws IOException, InterruptedException {
 		Path path = Paths.get(watchTargetDirectory.toURI());
 		WatchService watchService = path.getFileSystem().newWatchService();
 		path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-		WatchKey watchKey = null;
-		try {
-			watchKey = watchService.take();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		WatchKey watchKey = watchService.take();
 		List<WatchEvent<?>> events = watchKey.pollEvents();
 		for (WatchEvent<?> event : events) {
 			if (StandardWatchEventKinds.ENTRY_MODIFY.equals(event.kind())) {

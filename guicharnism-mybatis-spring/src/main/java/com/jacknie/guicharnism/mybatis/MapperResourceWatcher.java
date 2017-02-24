@@ -18,4 +18,8 @@ import java.io.IOException;
 public interface MapperResourceWatcher {
 
 	void watch() throws IOException;
+	
+	boolean isWatched();
+	
+	void release();
 }
