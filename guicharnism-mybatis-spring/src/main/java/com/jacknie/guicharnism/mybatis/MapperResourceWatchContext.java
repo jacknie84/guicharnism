@@ -17,7 +17,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.session.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -33,6 +35,7 @@ import com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory;
 public class MapperResourceWatchContext {
 
 	private final MultiValueMap<String, Resource> resourceMap = new LinkedMultiValueMap<String, Resource>();
+	private final Map<String, MapperResourceWatcher> watcherMap = new HashMap<String, MapperResourceWatcher>();
 	private final PathMatcher pathMatcher = new AntPathMatcher();
 	
 	private String realoadTargetFilePattern;
@@ -43,9 +46,9 @@ public class MapperResourceWatchContext {
 		return new NioMapperResourceWatcherFactory(this);
 	}
 	
-	public boolean isAlreadyWatched(Resource directory) throws IOException {
-		String path = directory.getFile().getAbsolutePath();
-		return resourceMap.containsKey(path);
+	public boolean isAlreadyWatched(Resource resource) throws IOException {
+		String directory = resource.getFile().getAbsolutePath();
+		return resourceMap.containsKey(directory);
 	}
 
 	public Configuration getConfiguration() {
@@ -70,7 +73,9 @@ public class MapperResourceWatchContext {
 		return pathMatcher.match(realoadTargetFilePattern, fileName);
 	}
 	
-	public void addTargetDirectory(Resource resource) throws IOException {
+	public void addWatcher(MapperResourceWatcher watcher) throws IOException {
+		
+		Resource resource = watcher.getTargetResource();
 		
 		if (!resource.exists()) {
 			throw new FileNotFoundException(resource.getDescription());
@@ -80,6 +85,9 @@ public class MapperResourceWatchContext {
 		if (!watchTargetDirectory.isDirectory()) {
 			throw new IllegalArgumentException("File object is not referenced directory.");
 		}
+		
+		String directory = watchTargetDirectory.getAbsolutePath();
+		watcherMap.put(directory, watcher);
 		
 		File[] children = watchTargetDirectory.listFiles(new FileFilter() {
 
@@ -92,10 +100,17 @@ public class MapperResourceWatchContext {
 		if (children != null) {
 			for (File child : children) {
 				Resource childResource = new FileSystemResource(child);
-				String directory = watchTargetDirectory.getAbsolutePath();
 				resourceMap.add(directory, childResource);
 			}
 		}
+	}
+	
+	public void removeWatcher(MapperResourceWatcher watcher) throws IOException {
+		
+		Resource resource = watcher.getTargetResource();
+		String directory = resource.getFile().getAbsolutePath();
+		watcherMap.remove(directory);
+		resourceMap.remove(directory);
 	}
 	
 	public List<Resource> getResources(String directory) {

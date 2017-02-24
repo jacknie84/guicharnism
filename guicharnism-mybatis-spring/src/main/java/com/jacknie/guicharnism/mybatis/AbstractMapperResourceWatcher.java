@@ -43,11 +43,16 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	}
 	
 	@Override
+	public Resource getTargetResource() {
+		return watchTarget;
+	}
+
+	@Override
 	public void watch() throws IOException {
 		if (isWatched()) {
 			throw new IllegalStateException("Already watched.");
 		}
-		watchContext.addTargetDirectory(watchTarget);
+		watchContext.addWatcher(this);
 		prepareWatchThread().start();
 	}
 	
@@ -57,9 +62,10 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	}
 
 	@Override
-	public void release() {
+	public void release() throws IOException {
 		if (isWatched()) {
 			watchThread.interrupt();
+			watchContext.removeWatcher(this);
 		}
 	}
 	

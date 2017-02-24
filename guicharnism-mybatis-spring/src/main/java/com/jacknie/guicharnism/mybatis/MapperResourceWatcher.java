@@ -15,11 +15,15 @@ package com.jacknie.guicharnism.mybatis;
 
 import java.io.IOException;
 
+import org.springframework.core.io.Resource;
+
 public interface MapperResourceWatcher {
 
+	Resource getTargetResource();
+	
 	void watch() throws IOException;
 	
 	boolean isWatched();
 	
-	void release();
+	void release() throws IOException;
 }
