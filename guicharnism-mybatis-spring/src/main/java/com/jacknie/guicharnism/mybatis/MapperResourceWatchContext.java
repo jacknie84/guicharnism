@@ -70,11 +70,13 @@ public class MapperResourceWatchContext {
 		return pathMatcher.match(realoadTargetFilePattern, fileName);
 	}
 	
-	public void addTargetDirectory(File watchTargetDirectory) throws FileNotFoundException {
+	public void addTargetDirectory(Resource resource) throws IOException {
 		
-		if (!watchTargetDirectory.exists()) {
-			throw new FileNotFoundException(watchTargetDirectory.getAbsolutePath());
+		if (!resource.exists()) {
+			throw new FileNotFoundException(resource.getDescription());
 		}
+		
+		File watchTargetDirectory = resource.getFile();
 		if (!watchTargetDirectory.isDirectory()) {
 			throw new IllegalArgumentException("File object is not referenced directory.");
 		}
@@ -89,9 +91,9 @@ public class MapperResourceWatchContext {
 		});
 		if (children != null) {
 			for (File child : children) {
-				Resource resource = new FileSystemResource(child);
+				Resource childResource = new FileSystemResource(child);
 				String directory = watchTargetDirectory.getAbsolutePath();
-				resourceMap.add(directory, resource);
+				resourceMap.add(directory, childResource);
 			}
 		}
 	}

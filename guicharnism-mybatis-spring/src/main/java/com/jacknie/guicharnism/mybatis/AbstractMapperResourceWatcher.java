@@ -47,12 +47,8 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 		if (isWatched()) {
 			throw new IllegalStateException("Already watched.");
 		}
-		
-		File watchTargetDirectory = watchTarget.getFile();
-		watchContext.addTargetDirectory(watchTargetDirectory);
-		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
-		watchThread = new Thread(watchRunner);
-		watchThread.start();
+		watchContext.addTargetDirectory(watchTarget);
+		prepareWatchThread().start();
 	}
 	
 	@Override
@@ -65,6 +61,16 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 		if (isWatched()) {
 			watchThread.interrupt();
 		}
+	}
+	
+	private Thread prepareWatchThread() throws IOException {
+		if (this.watchThread == null) {
+			File watchTargetDirectory = watchTarget.getFile();
+			Runnable watchRunner = new WatchRunner(watchTargetDirectory);
+			Thread watchThread = new Thread(watchRunner);
+			this.watchThread = watchThread;
+		}
+		return this.watchThread;
 	}
 
 	/**
