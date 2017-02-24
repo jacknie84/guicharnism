@@ -8,4 +8,8 @@
     <property name="reloadTargets" value="file:/home/git/doodles/src/main/resources/mybatis/mapper" />
     <property name="realoadTargetFilePattern" value="*-mapper.xml" />
 </bean>
+
+<bean class="com.jacknie.guicharnism.mybatis.MapperResourceWatchContext" id="watchContext">
+    <property name="reloadTargetFilePattern" value="*-mapper.xml" />
+</bean>
 ```
