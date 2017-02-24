@@ -36,8 +36,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.PathMatcher;
 
-import com.jacknie.guicharnism.mybatis.support.NioMapperResourceWatcherFactory;
-
 public class MapperResourceWatchContext {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());	
@@ -59,7 +57,7 @@ public class MapperResourceWatchContext {
 				if (ClassUtils.isPresent(className, classLoader)) {
 					logger.debug("[{}] factory instance loading...", className);
 					Class<?> clazz = classLoader.loadClass(className);
-					Constructor<?> constructor = ClassUtils.getConstructorIfAvailable(clazz, this.getClass());
+					Constructor<?> constructor = clazz.getConstructor(getClass());
 					Object instance = constructor.newInstance(this);
 					this.watcherFactory = (MapperResourceWatcherFactory) instance;
 				}
