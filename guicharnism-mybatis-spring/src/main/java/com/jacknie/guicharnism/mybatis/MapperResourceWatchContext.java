@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +112,18 @@ public class MapperResourceWatchContext {
 		String directory = resource.getFile().getAbsolutePath();
 		watcherMap.remove(directory);
 		resourceMap.remove(directory);
+	}
+	
+	public MapperResourceWatcher getWatcher(File directory) {
+		return watcherMap.get(directory.getAbsolutePath());
+	}
+	
+	public MapperResourceWatcher getWatcher(Resource resource) throws IOException {
+		return getWatcher(resource.getFile());
+	}
+	
+	public Collection<MapperResourceWatcher> getWatchers() {
+		return watcherMap.values();
 	}
 	
 	public List<Resource> getResources(String directory) {
