@@ -27,9 +27,12 @@ import org.apache.ibatis.session.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.PathMatcher;
+
+import com.jacknie.guicharnism.mybatis.support.DefaultMapperResourceWatcherFactoryResolver;
 
 public class MapperResourceWatchContext {
 
@@ -40,7 +43,7 @@ public class MapperResourceWatchContext {
 	private String reloadTargetFilePattern;
 	private Configuration configuration;
 	private MapperResourceWatcherFactory watcherFactory;
-	private MapperResourceWatcherFactoryResolver factoryResolver;
+	private MapperResourceWatcherFactoryResolver factoryResolver = new DefaultMapperResourceWatcherFactoryResolver();
 	
 	public MapperResourceWatcherFactory resolveFactory() throws MapperResourceWatcherFactoryNotFoundException {
 		if (this.watcherFactory == null) {
@@ -69,6 +72,7 @@ public class MapperResourceWatchContext {
 	}
 
 	public void setFactoryResolver(MapperResourceWatcherFactoryResolver factoryResolver) {
+		Assert.notNull(factoryResolver);
 		this.factoryResolver = factoryResolver;
 	}
 
