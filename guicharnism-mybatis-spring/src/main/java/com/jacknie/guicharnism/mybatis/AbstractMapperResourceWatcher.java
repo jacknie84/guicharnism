@@ -33,22 +33,28 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 	protected final MapperResourceWatchContext watchContext;
-	protected final Configuration configuration;
+	protected final Resource watchTarget;
 
-	public AbstractMapperResourceWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
+	public AbstractMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
 		this.watchContext = watchContext;
-		this.configuration = configuration;
+		this.watchTarget = watchTarget;
 	}
 	
 	@Override
-	public void watch(Resource watchTargetResource) throws IOException {
-		File watchTargetDirectory = watchTargetResource.getFile();
+	public void watch() throws IOException {
+		File watchTargetDirectory = watchTarget.getFile();
 		watchContext.addTargetDirectory(watchTargetDirectory);
 		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
 		Thread watchThread = new Thread(watchRunner);
 		watchThread.start();
 	}
 	
+	/**
+	 * 현재 쓰레드를 비활성화(lock) 시키고 파일 수정이 일어날 때 다시 쓰레드를 활성화 한다.
+	 * @param watchTargetDirectory
+	 * @return
+	 * @throws IOException
+	 */
 	protected abstract File receiveModification(File watchTargetDirectory) throws IOException;
 	
 	protected class WatchRunner implements Runnable {
@@ -70,6 +76,7 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 					if (mapperResource != null) {
 						logger.debug("start parse mapper resource.");
 						try {
+							Configuration configuration = watchContext.getConfiguration();
 							InputStream mapperSource = mapperResource.getInputStream();
 							String resourceName = mapperResource.toString();
 							XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperSource,

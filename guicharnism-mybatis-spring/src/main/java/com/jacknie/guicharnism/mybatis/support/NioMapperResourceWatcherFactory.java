@@ -13,7 +13,7 @@
  */
 package com.jacknie.guicharnism.mybatis.support;
 
-import org.apache.ibatis.session.Configuration;
+import org.springframework.core.io.Resource;
 
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatcher;
@@ -21,9 +21,15 @@ import com.jacknie.guicharnism.mybatis.MapperResourceWatcherFactory;
 
 public class NioMapperResourceWatcherFactory implements MapperResourceWatcherFactory {
 
+	private MapperResourceWatchContext watchContext;
+	
+	public NioMapperResourceWatcherFactory(MapperResourceWatchContext watchContext) {
+		this.watchContext = watchContext;
+	}
+
 	@Override
-	public MapperResourceWatcher createWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
-		return new NioMapperResourceWatcher(watchContext, configuration);
+	public MapperResourceWatcher createWatcher(Resource realoadTarget) {
+		return new NioMapperResourceWatcher(watchContext, realoadTarget);
 	}
 
 }

@@ -15,9 +15,7 @@ package com.jacknie.guicharnism.mybatis;
 
 import java.io.IOException;
 
-import org.springframework.core.io.Resource;
-
 public interface MapperResourceWatcher {
 
-	void watch(Resource directory) throws IOException;
+	void watch() throws IOException;
 }

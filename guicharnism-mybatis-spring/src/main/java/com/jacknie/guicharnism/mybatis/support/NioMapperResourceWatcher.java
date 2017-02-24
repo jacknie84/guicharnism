@@ -23,7 +23,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.List;
 
-import org.apache.ibatis.session.Configuration;
+import org.springframework.core.io.Resource;
 
 import com.jacknie.guicharnism.mybatis.AbstractMapperResourceWatcher;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
@@ -34,8 +34,8 @@ public class NioMapperResourceWatcher extends AbstractMapperResourceWatcher {
 	 * @param watchContext
 	 * @param configuration
 	 */
-	public NioMapperResourceWatcher(MapperResourceWatchContext watchContext, Configuration configuration) {
-		super(watchContext, configuration);
+	public NioMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
+		super(watchContext, watchTarget);
 	}
 
 	@Override

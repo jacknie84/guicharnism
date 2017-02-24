@@ -52,13 +52,13 @@ public class ReloadableSqlSessionFactoryBean extends SqlSessionFactoryBean {
 		
 		Configuration configuration = getObject().getConfiguration();
 		watchContext.setRealoadTargetFilePattern(realoadTargetFilePattern);
+		watchContext.setConfiguration(configuration);
 		MapperResourceWatcherFactory watcherFactory = watchContext.resolveFactory();
-		MapperResourceWatcher mapperWatcher = watcherFactory.createWatcher(watchContext, configuration);
 		
 		for (Resource realoadTarget : reloadTargets) {
 			if (!watchContext.isAlreadyWatched(realoadTarget)) {
 				logger.debug("watching... \"{}\"", realoadTarget);
-				mapperWatcher.watch(realoadTarget);
+				watcherFactory.createWatcher(realoadTarget).watch();
 			}
 		}
 	}

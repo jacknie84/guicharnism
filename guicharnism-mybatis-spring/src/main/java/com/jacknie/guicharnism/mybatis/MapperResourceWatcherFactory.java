@@ -13,9 +13,9 @@
  */
 package com.jacknie.guicharnism.mybatis;
 
-import org.apache.ibatis.session.Configuration;
+import org.springframework.core.io.Resource;
 
 public interface MapperResourceWatcherFactory {
 
-	MapperResourceWatcher createWatcher(MapperResourceWatchContext watchContext, Configuration configuration);
+	MapperResourceWatcher createWatcher(Resource realoadTarget);
 }

@@ -19,9 +19,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.ibatis.session.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.PathMatcher;
@@ -34,15 +36,25 @@ public class MapperResourceWatchContext {
 	private final PathMatcher pathMatcher = new AntPathMatcher();
 	
 	private String realoadTargetFilePattern;
+	private Configuration configuration;
 	
 	public MapperResourceWatcherFactory resolveFactory() {
 		//TODO: 1.6 환경 개발자 고려 VFS Watcher 개발 예정
-		return new NioMapperResourceWatcherFactory();
+		return new NioMapperResourceWatcherFactory(this);
 	}
 	
 	public boolean isAlreadyWatched(Resource directory) throws IOException {
 		String path = directory.getFile().getAbsolutePath();
 		return resourceMap.containsKey(path);
+	}
+
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		Assert.notNull(configuration);
+		this.configuration = configuration;
 	}
 
 	public void setRealoadTargetFilePattern(String realoadTargetFilePattern) {
