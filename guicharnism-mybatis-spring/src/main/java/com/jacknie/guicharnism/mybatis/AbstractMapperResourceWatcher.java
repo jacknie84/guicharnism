@@ -36,7 +36,6 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	protected final Resource watchTarget;
 	
 	protected Thread watchThread;
-	private boolean watched;
 
 	public AbstractMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
 		this.watchContext = watchContext;
@@ -54,20 +53,18 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 		Runnable watchRunner = new WatchRunner(watchTargetDirectory);
 		watchThread = new Thread(watchRunner);
 		watchThread.start();
-		watched = true;
 	}
 	
 	@Override
 	public boolean isWatched() {
-		return watched;
+		return watchThread != null && watchThread.isAlive();
 	}
 
 	@Override
 	public void release() {
-		if (watchThread != null && watchThread.isAlive()) {
+		if (isWatched()) {
 			watchThread.interrupt();
 		}
-		watched = false;
 	}
 
 	/**
