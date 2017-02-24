@@ -42,11 +42,15 @@ public class MapperResourceWatchContext {
 	
 	private String reloadTargetFilePattern;
 	private Configuration configuration;
+	private MapperResourceWatcherFactory watcherFactory;
 	
 	public MapperResourceWatcherFactory resolveFactory() {
 		Assert.hasLength(reloadTargetFilePattern);
 		//TODO: 1.6 환경 개발자 고려 VFS Watcher 개발 예정
-		return new NioMapperResourceWatcherFactory(this);
+		if (this.watcherFactory == null) {
+			this.watcherFactory = new NioMapperResourceWatcherFactory(this);
+		}
+		return this.watcherFactory;
 	}
 	
 	public boolean isAlreadyWatched(Resource resource) throws IOException {
@@ -59,7 +63,6 @@ public class MapperResourceWatchContext {
 	}
 
 	public void setConfiguration(Configuration configuration) {
-		Assert.notNull(configuration);
 		this.configuration = configuration;
 	}
 
