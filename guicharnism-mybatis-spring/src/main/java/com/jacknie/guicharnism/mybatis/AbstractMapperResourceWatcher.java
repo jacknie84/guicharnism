@@ -29,19 +29,24 @@ import org.springframework.core.io.Resource;
  * @author jacknie
  *
  */
-public abstract class AbstractMapperResourceWatcher implements MapperResourceWatcher {
+public abstract class AbstractMapperResourceWatcher implements MapperResourceWatcher, Runnable {
 	
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 	protected final MapperResourceWatchContext watchContext;
-	protected final Resource watchTarget;
+	protected final Resource watchTarget; 
 	
 	protected Thread watchThread;
+	protected XMLMapperBuilder mapperBuilder;
 
 	public AbstractMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
 		this.watchContext = watchContext;
 		this.watchTarget = watchTarget;
 	}
-	
+
+	public void setMapperBuilder(XMLMapperBuilder mapperBuilder) {
+		this.mapperBuilder = mapperBuilder;
+	}
+
 	@Override
 	public Resource getTargetResource() {
 		return watchTarget;
@@ -70,13 +75,65 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	}
 	
 	private Thread prepareWatchThread() throws IOException {
-		if (this.watchThread == null) {
-			File watchTargetDirectory = watchTarget.getFile();
-			Runnable watchRunner = new WatchRunner(watchTargetDirectory);
-			Thread watchThread = new Thread(watchRunner);
+		if (this.watchThread == null || this.watchThread.isInterrupted()) {
+			Thread watchThread = new Thread(this);
 			this.watchThread = watchThread;
 		}
 		return this.watchThread;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				File modifiedFile = receiveModification(watchTarget.getFile());
+				if (modifiedFile != null) {
+					String modifiedFilePath = modifiedFile.getAbsolutePath();
+					logger.debug("[{}] file modified.", modifiedFilePath);
+					Resource mapperResource = getMatchedMapperResource(modifiedFilePath);
+					if (mapperResource != null) {
+						logger.debug("start parse mapper resource.");
+						try {
+							Configuration configuration = watchContext.getConfiguration();
+							InputStream mapperSource = mapperResource.getInputStream();
+							String resourceName = mapperResource.toString();
+							XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperSource,
+									configuration, resourceName, configuration.getSqlFragments());
+			
+							xmlMapperBuilder.parse();
+						} catch (Exception e) {
+							throw new IllegalStateException(e);
+						} finally {
+							ErrorContext.instance().reset();
+						}
+						logger.debug("MapperResourceWatcher reloads mybatis mapper resource.");
+					}
+					else {
+						logger.debug("[{}] file is not exists matched resource.");
+					}
+				}
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			} catch (InterruptedException e) {
+				logger.debug("[{}] thread is interrpted.", watchThread.getName());
+				logger.debug("Watcher turn off monitoring {} resource.", watchTarget);
+				this.watchThread = null;
+				return;
+			}
+		}
+	}
+	
+	private Resource getMatchedMapperResource(String modifiedFilePath) throws IOException {
+		List<Resource> resources = watchContext.getResources(watchTarget.getFile().getAbsolutePath());
+		if (resources != null) {
+			for (Resource resource : resources) {
+				String resourcePath = resource.getFile().getAbsolutePath();
+				if (resourcePath.equals(modifiedFilePath)) {
+					return resource;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -88,66 +145,4 @@ public abstract class AbstractMapperResourceWatcher implements MapperResourceWat
 	 */
 	protected abstract File receiveModification(File watchTargetDirectory) throws IOException, InterruptedException;
 	
-	protected class WatchRunner implements Runnable {
-		
-		File watchTargetDirectory;
-
-		public WatchRunner(File watchTargetDirectory) {
-			this.watchTargetDirectory = watchTargetDirectory;
-		}
-
-		@Override
-		public void run() {
-			while (true) {
-				try {
-					File modifiedFile = receiveModification(watchTargetDirectory);
-					if (modifiedFile != null) {
-						String modifiedFilePath = modifiedFile.getAbsolutePath();
-						logger.debug("[{}] file modified.", modifiedFilePath);
-						Resource mapperResource = getMatchedMapperResource(modifiedFilePath);
-						if (mapperResource != null) {
-							logger.debug("start parse mapper resource.");
-							try {
-								Configuration configuration = watchContext.getConfiguration();
-								InputStream mapperSource = mapperResource.getInputStream();
-								String resourceName = mapperResource.toString();
-								XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperSource,
-										configuration, resourceName, configuration.getSqlFragments());
-				
-								xmlMapperBuilder.parse();
-							} catch (Exception e) {
-								throw new IllegalStateException(e);
-							} finally {
-								ErrorContext.instance().reset();
-							}
-							logger.debug("MapperResourceWatcher reloads mybatis mapper resource.");
-						}
-						else {
-							logger.debug("[{}] file is not exists matched resource.");
-						}
-					}
-				} catch (IOException e) {
-					throw new IllegalStateException(e);
-				} catch (InterruptedException e) {
-					logger.debug("[{}] thread is interrpted.", watchThread.getName());
-					logger.debug("Watcher turn off monitoring {} resource.", watchTarget);
-					return;
-				}
-			}
-		}
-		
-		Resource getMatchedMapperResource(String modifiedFilePath) throws IOException {
-			List<Resource> resources = watchContext.getResources(watchTargetDirectory.getAbsolutePath());
-			if (resources != null) {
-				for (Resource resource : resources) {
-					String resourcePath = resource.getFile().getAbsolutePath();
-					if (resourcePath.equals(modifiedFilePath)) {
-						return resource;
-					}
-				}
-			}
-			return null;
-		}
-	}
-
 }

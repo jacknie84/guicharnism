@@ -15,6 +15,7 @@ package com.jacknie.guicharnism.mybatis.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.commons.vfs2.FileChangeEvent;
 import org.apache.commons.vfs2.FileListener;
@@ -33,11 +34,10 @@ import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
  * @author jacknie
  *
  */
-public class VfsMapperResourceWatcher extends AbstractMapperResourceWatcher {
+public class VfsMapperResourceWatcher extends AbstractMapperResourceWatcher implements FileListener {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object mutex = new Object();
-	private final FileListener fileListener = new MapperResourceFileListener();
 	
 	private DefaultFileMonitor fileMonitor;
 	private volatile File modifiedFile;
@@ -49,8 +49,8 @@ public class VfsMapperResourceWatcher extends AbstractMapperResourceWatcher {
 	@Override
 	protected File receiveModification(File watchTargetDirectory) throws IOException, InterruptedException {
 		synchronized (mutex) {
-			
-			FileObject folder = VFS.getManager().resolveFile(watchTargetDirectory.toURI());
+			URI targetUri = watchTargetDirectory.toURI();
+			FileObject folder = VFS.getManager().resolveFile(targetUri);
 			DefaultFileMonitor fileMonitor = prepareFileMonitor();
 			
 			try {
@@ -69,35 +69,31 @@ public class VfsMapperResourceWatcher extends AbstractMapperResourceWatcher {
 	
 	private DefaultFileMonitor prepareFileMonitor() {
 		if (this.fileMonitor == null) {
-			DefaultFileMonitor fileMonitor = new DefaultFileMonitor(fileListener);
+			DefaultFileMonitor fileMonitor = new DefaultFileMonitor(this);
 			fileMonitor.setRecursive(true);
 			this.fileMonitor = fileMonitor;
 		}
 		return this.fileMonitor;
 	}
 	
-	private class MapperResourceFileListener implements FileListener {
-
-		@Override
-		public void fileCreated(FileChangeEvent event) throws Exception {
-			//do nothing...
-		}
-
-		@Override
-		public void fileDeleted(FileChangeEvent event) throws Exception {
-			//do nothing...
-		}
-
-		@Override
-		public void fileChanged(FileChangeEvent event) throws Exception {
-			synchronized (mutex) {
-				FileObject changedFile = event.getFile();
-				File modifiedFile = ResourceUtils.getFile(changedFile.getURL());
-				VfsMapperResourceWatcher.this.modifiedFile = modifiedFile;
-				mutex.notifyAll();
-			}
-		}
-		
+	@Override
+	public void fileCreated(FileChangeEvent event) throws Exception {
+		//do nothing...
 	}
 
+	@Override
+	public void fileDeleted(FileChangeEvent event) throws Exception {
+		//do nothing...
+	}
+
+	@Override
+	public void fileChanged(FileChangeEvent event) throws Exception {
+		synchronized (mutex) {
+			FileObject changedFile = event.getFile();
+			File modifiedFile = ResourceUtils.getFile(changedFile.getURL());
+			this.modifiedFile = modifiedFile;
+			mutex.notifyAll();
+		}
+	}
+	
 }
