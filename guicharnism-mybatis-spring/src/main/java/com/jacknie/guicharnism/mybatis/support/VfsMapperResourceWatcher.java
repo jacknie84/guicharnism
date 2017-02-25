@@ -19,8 +19,6 @@ import java.io.IOException;
 import org.apache.commons.vfs2.FileChangeEvent;
 import org.apache.commons.vfs2.FileListener;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.DefaultFileMonitor;
 import org.slf4j.Logger;
@@ -40,38 +38,42 @@ public class VfsMapperResourceWatcher extends FileMapperResourceWatcher {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object mutex = new Object();
 	private final FileListener fileListener = new MapperResourceFileListener();
-	private final FileSystemManager vfsManager;
 	
+	private DefaultFileMonitor fileMonitor;
 	private volatile File modifiedFile;
 	
 	public VfsMapperResourceWatcher(MapperResourceWatchContext watchContext, Resource watchTarget) {
 		super(watchContext, watchTarget);
-		try {
-			this.vfsManager = VFS.getManager();
-		} catch (FileSystemException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	@Override
 	protected File receiveModification(File watchTargetDirectory) throws IOException, InterruptedException {
 		synchronized (mutex) {
-			FileObject folder = vfsManager.resolveFile(watchTargetDirectory.toURI());
-			DefaultFileMonitor fileMonitor = new DefaultFileMonitor(fileListener);
-			fileMonitor.setRecursive(true);
-			fileMonitor.addFile(folder);
-			logger.debug("VFS file monitor start. [target: {}]", folder);
-			fileMonitor.start();
-			mutex.wait();
-			fileMonitor.stop();
-			logger.debug("VFS file monitor stop. [target: {}]", folder);
+			
+			FileObject folder = VFS.getManager().resolveFile(watchTargetDirectory.toURI());
+			DefaultFileMonitor fileMonitor = prepareFileMonitor();
 			
 			try {
+				fileMonitor.addFile(folder);
+				logger.debug("VFS file monitor start. [target: {}]", folder);
+				fileMonitor.start();
+				mutex.wait();
 				return modifiedFile;
 			} finally {
-				modifiedFile = null;
+				fileMonitor.stop();
+				logger.debug("VFS file monitor stop. [target: {}]", folder);
+				this.modifiedFile = null;
 			}
 		}
+	}
+	
+	private DefaultFileMonitor prepareFileMonitor() {
+		if (this.fileMonitor == null) {
+			DefaultFileMonitor fileMonitor = new DefaultFileMonitor(fileListener);
+			fileMonitor.setRecursive(true);
+			this.fileMonitor = fileMonitor;
+		}
+		return this.fileMonitor;
 	}
 	
 	private class MapperResourceFileListener implements FileListener {

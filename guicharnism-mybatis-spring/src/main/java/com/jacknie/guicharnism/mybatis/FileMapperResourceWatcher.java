@@ -58,7 +58,7 @@ public abstract class FileMapperResourceWatcher implements MapperResourceWatcher
 	
 	@Override
 	public boolean isWatched() {
-		return watchThread != null && watchThread.isAlive();
+		return watchThread != null && watchThread.isAlive() && !watchThread.isInterrupted();
 	}
 
 	@Override
