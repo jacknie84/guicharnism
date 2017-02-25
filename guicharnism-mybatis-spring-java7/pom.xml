@@ -81,6 +81,13 @@
 		    <version>1.10.19</version>
 		    <scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
+		<dependency>
+		    <groupId>org.mybatis</groupId>
+		    <artifactId>mybatis</artifactId>
+		    <version>3.4.1</version>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
 	
 	<build>
