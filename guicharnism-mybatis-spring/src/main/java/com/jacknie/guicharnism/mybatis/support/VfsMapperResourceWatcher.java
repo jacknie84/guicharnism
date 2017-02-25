@@ -26,14 +26,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ResourceUtils;
 
-import com.jacknie.guicharnism.mybatis.FileMapperResourceWatcher;
+import com.jacknie.guicharnism.mybatis.AbstractMapperResourceWatcher;
 import com.jacknie.guicharnism.mybatis.MapperResourceWatchContext;
 
 /**
  * @author jacknie
  *
  */
-public class VfsMapperResourceWatcher extends FileMapperResourceWatcher {
+public class VfsMapperResourceWatcher extends AbstractMapperResourceWatcher {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Object mutex = new Object();
